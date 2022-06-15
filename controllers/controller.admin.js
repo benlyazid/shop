@@ -59,10 +59,15 @@ exports.getProducts = (req, res, next) => {
     });
   });
 };
+
 exports.deleteProduct = (req, res, next)=>{
-  console.log(req.body.productId)
-  res.redirect('/')
+  const productId = req.body.productId;
+  Product.deleteProductById(productId, (_path, product)=>{
+    fs.writeFile(_path, JSON.stringify(product), err => console.log("error in writing in file : " + err))
+  })
+  res.redirect('/admin/products')
   
 }
+
 // http://store/produts/159 req.params 
 // http://store/produts?productId=159 req.query

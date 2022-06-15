@@ -62,6 +62,18 @@ module.exports = class Product {
       cb(p, products)
     })
   }
+
+
+  static deleteProductById(idToDelete, cb){
+    getProductsFromFile(products =>{
+      const product_index = products.findIndex(p => p.id == idToDelete);
+      if (product_index == -1){
+        return;
+      }
+      products.splice(product_index, 1);
+      cb(p, products)
+    })
+  }
 };
 
 
