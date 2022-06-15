@@ -9,7 +9,6 @@ const p = path.join(
 
 const getProductsFromFile = cb => {
   fs.readFile(p, (err, fileContent) => {
-    // console.log(fileContent)
     if (err || !fileContent) {
       cb([]);
     } else {
@@ -24,11 +23,12 @@ const getProductsFromFile = cb => {
 };
 
 module.exports = class Product {
-  constructor(title, imageUrl, description, price) {
+  constructor(title, imageUrl, description, price, id) {
     this.title = title;
     this.imageUrl = imageUrl;
     this.description = description;
     this.price = price;
+    this.id = id;
   }
 
   save() {
@@ -52,21 +52,13 @@ module.exports = class Product {
     });
   }
   
-  static updateProductById({title, id, imageUrl, description, price}, cb){
+  static updateProductById(updadted_product, cb){
     getProductsFromFile(products =>{
-      const product = products.find(p => p.id == id);
-      if (!product){
+      const product_index = products.findIndex(p => p.id == updadted_product.id);
+      if (product_index == -1){
         return;
       }
-      products.forEach(product => {
-          if (product.id == id){
-            product.id = id
-            product.title = title
-            product.imageUrl = imageUrl
-            product.description = description
-            product.price = price
-          }
-      });
+      products[product_index] = updadted_product;
       cb(p, products)
     })
   }

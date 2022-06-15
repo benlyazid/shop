@@ -23,7 +23,6 @@ exports.postAddProduct = (req, res, next) => {
 
 exports.getEditProduct = (req, res, next) => {
   const editMode = req.query.edit
-  console.log(editMode)
   const productId = req.params.productId;
   Product.findById(productId, product=>{
 
@@ -40,13 +39,11 @@ exports.getEditProduct = (req, res, next) => {
 
 exports.postEditProduct = (req, res, next)=> {
   const productId = req.query.productId
-  console.log(productId)
   const title = req.body.title;
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const product = new Product(title, imageUrl, description, price);
-  product.id = productId
+  const product = new Product(title, imageUrl, description, price, productId);
   Product.updateProductById(product, (_path, product) =>{
     fs.writeFile(_path, JSON.stringify(product), err => console.log("error in writing in file : " + err))
   })
@@ -62,6 +59,10 @@ exports.getProducts = (req, res, next) => {
     });
   });
 };
-
+exports.deleteProduct = (req, res, next)=>{
+  console.log(req.body.productId)
+  res.redirect('/')
+  
+}
 // http://store/produts/159 req.params 
 // http://store/produts?productId=159 req.query
