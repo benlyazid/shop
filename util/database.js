@@ -7,7 +7,7 @@ const pool = mysql.createPool({
 	database: "shop"
 	
 });
-//todo learn more about defferent between connection and pool
+//> learn more about defferent between connection and pool
 
 const createIfNotExist = () => {
 	let _pool = mysql.createPool({
@@ -25,7 +25,7 @@ const createIfNotExist = () => {
 			password: "root",
 			database: "shop"
 			})
-			_pool.promise().execute('CREATE TABLE IF NOT EXISTS products (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL UNIQUE, title VARCHAR(255) NOT NULL, price DOUBLE NOT NULL, description VARCHAR(255) NOT NULL, imageURL VARCHAR(255) NOT NULL)')
+			_pool.promise().execute('CREATE TABLE IF NOT EXISTS products (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL UNIQUE, title VARCHAR(255) NOT NULL, price DOUBLE NOT NULL, description VARCHAR(255) NOT NULL, imageUrl VARCHAR(255) NOT NULL)')
 			.then(msg =>{
 				console.log('TABLE CREATED....')
 				// console.log(msg)
@@ -54,7 +54,7 @@ CREATE DATABASE IF NOT EXISTS shop;
 */
 
 /*                  CREATE TABLE
-CREATE TABLE IF NOT EXISTS products (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL UNIQUE, title VARCHAR(255) NOT NULL, price DOUBLE NOT NULL, description VARCHAR(255) NOT NULL, imageURL VARCHAR(255) NOT NULL);
+CREATE TABLE IF NOT EXISTS products (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY NOT NULL UNIQUE, title VARCHAR(255) NOT NULL, price DOUBLE NOT NULL, description VARCHAR(255) NOT NULL, imageUrl VARCHAR(255) NOT NULL);
 */
 
 /*                  INSERT DATA

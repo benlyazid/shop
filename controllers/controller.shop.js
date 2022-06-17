@@ -20,16 +20,21 @@ exports.getProduct = (req, res, next) => {
 			path: '/products'
 		});
 	});
+	
 };
 
 exports.getIndex = (req, res, next) => {
-	Product.fetchAll(products => {
-		res.render('shop/index', {
-			prods: products,
+	Product.getAllProductsFromDatabase().then(([data, info]) => {
+			res.render('shop/index', {
+			prods: data,
 			pageTitle: 'Shop',
 			path: '/'
-		});
-	});
+		})
+	  })
+	  .catch(err => {
+		console.log(err)
+	  })
+
 };
 
 exports.getCart = (req, res, next) => {

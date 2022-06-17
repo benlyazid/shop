@@ -46,8 +46,19 @@ module.exports = class Product {
 		getProductsFromFile(cb);
 	}
 
+	static getAllProductsFromDatabase(){
+		let query = 'SELECT * FROM products';
+		return db.db_pool.execute(query);
+		// .then(data =>{
+		// 	console.log(data[0])
+		// })
+		// .catch(err =>{
+		// 	console.log(err)
+		// })
+	}
+
 	insertProductInDatabase(){
-		let  query = 'INSERT INTO products (title, price, description, imageURL)'
+		let  query = 'INSERT INTO products (title, price, description, imageUrl)'
 		query += `VALUES ('${this.title}', '${this.price}', '${this.description}', '${this.imageUrl}')`
 		console.log(query)
 		db.db_pool.execute(query)

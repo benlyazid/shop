@@ -1,5 +1,6 @@
 const Product = require('../models/model.product');
 const fs = require('fs');
+const { getAllProducts } = require('../models/model.cart');
 
 exports.getAddProduct = (req, res, next) => {
   res.render('admin/edit-product', {
@@ -52,13 +53,17 @@ exports.postEditProduct = (req, res, next)=> {
 }
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll(products => {
+  Product.getAllProductsFromDatabase().then(([data, info]) => {
+    console.log(data)
     res.render('admin/products', {
-      prods: products,
+      prods: data,
       pageTitle: 'Admin Products',
       path: '/admin/products'
-    });
-  });
+    })
+  })
+  .catch(err => {
+    console.log(err)
+  })
 };
 
 exports.deleteProduct = (req, res, next)=>{
