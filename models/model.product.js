@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-
+const db  = require('../util/database')
 const p = path.join(
 	path.dirname(process.mainModule.filename),
 	'data',
@@ -46,6 +46,20 @@ module.exports = class Product {
 		getProductsFromFile(cb);
 	}
 
+	insertProductInDatabase(){
+		let  query = 'INSERT INTO products (title, price, description, imageURL)'
+		query += `VALUES ('${this.title}', '${this.price}', '${this.description}', '${this.imageUrl}')`
+		console.log(query)
+		db.db_pool.execute(query)
+		.then(msg =>{
+			console.log("DATA INSERTED")
+		})
+		.catch(err =>{
+			console.log("ERROR IN INSERTING DATA :(")
+			console.log(err)
+		})
+	}
+
 	static findById(id, cb) {
 		getProductsFromFile(products => {
 			const product = products.find(p => p.id === id);
@@ -77,6 +91,3 @@ module.exports = class Product {
 	}
 };
 
-
-/**
- */
