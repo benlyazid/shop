@@ -1,6 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 const db  = require('../util/database')
+const sequelize = require('../util/database').sequelize
+const Sequelize = require('sequelize')
+
+
+
+
 const p = path.join(
 	path.dirname(process.mainModule.filename),
 	'data',
@@ -49,12 +55,6 @@ module.exports = class Product {
 	static getAllProductsFromDatabase(){
 		let query = 'SELECT * FROM products';
 		return db.db_pool.execute(query);
-		// .then(data =>{
-		// 	console.log(data[0])
-		// })
-		// .catch(err =>{
-		// 	console.log(err)
-		// })
 	}
 
 	insertProductInDatabase(){
@@ -69,6 +69,11 @@ module.exports = class Product {
 			console.log("ERROR IN INSERTING DATA :(")
 			console.log(err)
 		})
+	}
+
+	static getProductByindexFromDatabase(productId){
+		const query = `SELECT * FROM products WHERE id  = '${productId}'`
+		return db.db_pool.execute(query);
 	}
 
 	static findById(id, cb) {
@@ -101,4 +106,6 @@ module.exports = class Product {
 		})
 	}
 };
+
+
 

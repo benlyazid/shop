@@ -8,6 +8,8 @@ const db = require('./util/database')
 
 const app = express();
 
+//> correct bug in getProductByIndex route
+//> correct bug in  homePage when go to it frm products
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 console.log("start")
@@ -20,6 +22,7 @@ console.log("start")
     //     .catch(err => console.log(err))
     
     
+
 db.createIfNotExist()
 console.log("end")
 

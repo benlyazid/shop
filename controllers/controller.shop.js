@@ -2,25 +2,32 @@ const Product = require('../models/model.product');
 const Cart = require('../models/model.cart');
 
 exports.getProducts = (req, res, next) => {
-	Product.fetchAll(products => {
+	Product.getAllProductsFromDatabase().then(([data, info]) =>{
 		res.render('shop/product-list', {
-			prods: products,
+			prods: data,
 			pageTitle: 'All Products',
 			path: '/products'
 		});
-	});
+	})
+	.catch(err =>{
+		console.log(err)
+	})
 };
 
 exports.getProduct = (req, res, next) => {
-	const prodId = req.params.productId;
-	Product.findById(prodId, product => {
+	const productId = req.params.productId;
+	Product.getProductByindexFromDatabase(productId).then(([products, info]) =>{
+		if (!products[0])
+			res.redirect('/products')
 		res.render('shop/product-detail', {
-			product: product,
-			pageTitle: product.title,
+			product: products[0],
+			pageTitle: products[0].title,
 			path: '/products'
 		});
-	});
-	
+	})
+	.catch(err =>{
+		console.log("ERROR IN FINDING PRODUCT BY INDEX : " + err)
+	})
 };
 
 exports.getIndex = (req, res, next) => {
