@@ -8,22 +8,11 @@ const db = require('./util/database')
 
 const app = express();
 
-//> correct bug in getProductByIndex route
-//> correct bug in  homePage when go to it frm products
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 console.log("start")
-// db.execute('SELECT * FROM products')
-//     .then(data => {
-    //         console.log(data[0])
-    //         console.log("-----------------------------------------------------")
-    //         console.log(data[1])
-    //     })
-    //     .catch(err => console.log(err))
     
-    
-
-db.createIfNotExist()
+// db.createIfNotExist()
 console.log("end")
 
 const adminRoutes = require('./routes/route.admin');

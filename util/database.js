@@ -48,9 +48,6 @@ const createIfNotExist = () => {
 		})
 }
 
-
-
-
 module.exports = {
 	db_pool: pool.promise(),
 	createIfNotExist: createIfNotExist,
