@@ -2,7 +2,7 @@ const db  = require('../util/database')
 const sequelize = require('../util/database').sequelize
 const Sequelize = require('sequelize');
 
-const Product = sequelize.define('product',{
+const Product = sequelize.define('product' ,{
     id : {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -27,4 +27,4 @@ const Product = sequelize.define('product',{
         type: Sequelize.STRING,
     }
 })
-module.exports = Product
+module.exports = Product;

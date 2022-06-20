@@ -2,26 +2,27 @@ const Product = require('../models/model.product');
 const Cart = require('../models/model.cart');
 
 exports.getProducts = (req, res, next) => {
-	Product.getAllProductsFromDatabase().then(([data, info]) =>{
+	Product.findAll().then(data =>{
 		res.render('shop/product-list', {
 			prods: data,
 			pageTitle: 'All Products',
 			path: '/products'
-		});
+		})
 	})
 	.catch(err =>{
-		console.log(err)
+		if (err)
+			console.log(err)
 	})
 };
 
 exports.getProduct = (req, res, next) => {
 	const productId = req.params.productId;
-	Product.getProductByindexFromDatabase(productId).then(([products, info]) =>{
-		if (!products[0])
+	Product.findByPk(productId).then(product=>{
+		if (!product)
 			res.redirect('/products')
 		res.render('shop/product-detail', {
-			product: products[0],
-			pageTitle: products[0].title,
+			product: product,
+			pageTitle: product.title,
 			path: '/products'
 		});
 	})
@@ -31,17 +32,17 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
-	Product.getAllProductsFromDatabase().then(([data, info]) => {
-			res.render('shop/index', {
+	Product.findAll().then(data =>{
+		res.render('shop/index', {
 			prods: data,
 			pageTitle: 'Shop',
 			path: '/'
 		})
-	  })
-	  .catch(err => {
-		console.log(err)
-	  })
-
+	})
+	.catch(err =>{
+		if (err)
+			console.log(err)
+	})
 };
 
 exports.getCart = (req, res, next) => {
