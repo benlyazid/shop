@@ -1,6 +1,5 @@
 const Product = require('../models/model.product');
 const fs = require('fs');
-const { getAllProducts } = require('../models/model.cart');
 
 exports.getAddProduct = (req, res, next) => {
   res.render('admin/edit-product', {
@@ -19,7 +18,7 @@ exports.postAddProduct = (req, res, next) => {
   const product = new Product(title, imageUrl, description, price);
   // product.save();
   // product.insertProductInDatabase()
-  Product.create({
+  req.user.createProduct({
     title: title,
     imageUrl: imageUrl,
     price: price,
@@ -39,7 +38,12 @@ exports.postAddProduct = (req, res, next) => {
 exports.getEditProduct = (req, res, next) => {
   const editMode = req.query.edit
   const productId = req.params.productId;
-  Product.findByPk(productId).then(product => {
+  req.user.getProducts({where: { id : productId,}}).then(products =>{
+    const product = products[0]
+  // Product.findByPk(productId).then(product => {
+    console.log(product)
+    console.log(product.title)
+    console.log(productId)
     if (!product)
       return res.redirect('/')
     res.render('admin/edit-product', {
@@ -81,6 +85,7 @@ exports.postEditProduct = (req, res, next) => {
         console.log(err)
     })
 }
+
 
 exports.getProducts = (req, res, next) => {
   Product.findAll().then(products => {
