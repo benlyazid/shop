@@ -1,6 +1,7 @@
 const Product = require('../models/model.product');
 const Cart = require('../models/model.cart');
 const User = require('../models/model.user');
+const OrderItem = require('../models/model.orderItem');
 
 exports.getProducts = (req, res, next) => {
 	Product.findAll().then(data => {
@@ -51,7 +52,6 @@ exports.getCart = (req, res, next) => {
 		.then(cart => {
 			return cart.getProducts()
 				.then(products => {
-					console.log("PRODUCTS ARE \n\n" + products + "\n\n" +  products[0].title)
 					res.render('shop/cart', {
 						path: '/cart',
 						pageTitle: 'Your Cart',
@@ -102,25 +102,44 @@ exports.postCart = (req, res, next) => { // add product as parameter to show it 
 
 exports.deleteItem = (req, res, next) => {
 	const productId = req.body.productId
-	// Cart.deleteProduct(productId, () => {
-	// 	res.redirect('/cart');
-	// })
+	let fetchedCart
+	let product
 	req.user.getCart()
 	.then(cart => {
-		console.log("CART IS " + cart)
+		fetchedCart = cart
 		return cart.getProducts({where : { id : productId}})
 	})
 	.then(products => {
-		console.log("products getted from cart are " +  products + products.length)
+		product = products[0]
+		let newQuantity =  product.cartItem.quantity - 1
+		if (newQuantity > 0){
+			return fetchedCart.addProduct(product, {through : 
+				{
+					quantity : newQuantity
+				}
+			})
+		}
+		else{
+			return product.cartItem.destroy()
+		}
 	})
-	.catch(err => console.log(err)) //of get cart
+	.then(data => {
+		res.redirect('/cart')
+	})
+	.catch(err => console.log(err))
 }
 
 exports.getOrders = (req, res, next) => {
-	res.render('shop/orders', {
-		path: '/orders',
-		pageTitle: 'Your Orders'
-	});
+	req.user.getOrders({include : ['products']})
+	.then(orders => {
+		res.render('shop/orders', {
+			path: '/orders',
+			pageTitle: 'Your Orders',
+			orders : orders
+		});
+
+	})
+	.catch()
 };
 
 exports.getCheckout = (req, res, next) => {
@@ -129,3 +148,34 @@ exports.getCheckout = (req, res, next) => {
 		pageTitle: 'Checkout'
 	});
 };
+
+exports.createOrder = (req, res, next) =>{
+	let _products, _fetchedCart;
+	req.user.getCart()
+	.then(cart =>{
+		_fetchedCart = cart
+		return cart.getProducts();
+	})
+	.then(products => {
+		_products = products
+		return req.user.createOrder()
+	})
+	.then(order => {
+		order.addProducts(
+			_products.map(product =>{
+				product.orderItem = {quantity : product.cartItem.quantity}
+				return product
+			})
+		)
+	})
+	.then(result => {
+		console.log("data hase been removed from cart")
+		return _fetchedCart.setProducts(null)
+	})
+	.then(result =>{
+		
+		console.log("data have been inserted in order Table")
+		res.redirect('/orders')
+	})
+	.catch(err => console.log("error in inserting order \n\n"+ err))
+}

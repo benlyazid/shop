@@ -10,6 +10,8 @@ const Product = require('./models/model.product')
 const User = require('./models/model.user')
 const Cart = require('./models/model.cart')
 const CartItem = require('./models/model.cartItem')
+const Order = require('./models/model.order')
+const OrderItem = require('./models/model.orderItem')
 
 const adminRoutes = require('./routes/route.admin');
 const shopRoutes = require('./routes/route.shop');
@@ -47,9 +49,14 @@ User.hasOne(Cart)
 // Cart.belongsTo(User)
 Cart.belongsToMany(Product, {through : CartItem})
 Product.belongsToMany(Cart, {through : CartItem})
-// sequelize.sync({ force: true })
-sequelize.sync()
+Order.belongsTo(User)
+User.hasMany(Order)
+Order.belongsToMany(Product, {through: OrderItem})
 
+
+let _user;
+sequelize.sync()
+// sequelize.sync({ force: true })
     .then(res => {
         return User.findByPk(1);
     })
@@ -63,10 +70,16 @@ sequelize.sync()
         }
     })
     .then(user =>{
+        _user = user
         console.log("User has been inserted")
-        return user.createCart()
+        return user.getCart()
     })
     .then(cart =>{
+        if (!cart)
+            return _user.createCart()
+        return Promise.resolve(cart) //> serch for Promiss.resolve() for more info
+    })
+    .then(() =>{
         console.log("Cart has been created")
         app.listen(3000);
     })
