@@ -26,9 +26,14 @@ class Product{
     
     static updateProduct(productId, newProduct){
         const _db = getDb()
-        const productToUpdate = {_id: ObjectId}
+        const productToUpdate = {_id: ObjectId(productId)}
         return _db.collection('products').updateOne(productToUpdate, {$set : newProduct})
     }
+    
+    static deleteProduct(productId){
+        const _db = getDb()
+        return _db.collection('products').deleteOne({'_id' : ObjectId(productId)})
+    }   
 }
 
 module.exports = Product;

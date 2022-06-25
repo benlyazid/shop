@@ -1,6 +1,7 @@
 const Product = require('../models/model.product');
 const fs = require('fs');
 const { ObjectId } = require('mongodb');
+const { Console } = require('console');
 
 exports.getAddProduct = (req, res, next) => {
   res.render('admin/edit-product', {
@@ -21,7 +22,7 @@ exports.postAddProduct = (req, res, next) => {
     .then((data) => {
       console.log("DATA HAS BEEN INSERTED....")
       console.log(data)
-      res.redirect('/admin');
+      res.redirect('/products');
     })
     .catch(err => console.log(err))
 };
@@ -31,10 +32,11 @@ exports.getEditProduct = (req, res, next) => {
   const editMode = req.query.edit
   const productId = req.params.productId;
   Product.findById(productId)
-    .then((product) => {
-      if (!product)
-        return res.redirect('/')
-      res.render('admin/edit-product', {
+  .then((product) => {
+    if (!product)
+    return res.redirect('/')
+    console.log("__REQ IS "  + product._id)
+    res.render('admin/edit-product', {
         pageTitle: 'Edit Product',
         path: '/admin/edit-product',
         editing: editMode,
@@ -46,6 +48,7 @@ exports.getEditProduct = (req, res, next) => {
 
 exports.postEditProduct = (req, res, next) => {
   const productId = req.query.productId
+  console.log("ID IS " + productId)
   const title = req.body.title;
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
@@ -81,11 +84,10 @@ exports.getProducts = (req, res, next) => {
 
 exports.deleteProduct = (req, res, next) => {
   const productId = req.body.productId;
-  Product.destroy({
-    where: {
-      id: productId
-    }
-  }).then(data => {
+  console.log('productId is ' +  productId)
+  console.log('REQ is ' +  JSON.stringify(req.body.productId))
+  Product.deleteProduct(productId)
+  .then(data => {
     console.log(data)
     res.redirect('/admin/products')
   }).catch(err => {

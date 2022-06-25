@@ -1,21 +1,28 @@
-// `const sequelize = require('../util/database').sequelize
-// const Sequelize = require('sequelize')
+const getDb  = require('../util/database').getDb
 
-// const User = sequelize.define('user', {
-//     id : {
-//         type: Sequelize.INTEGER,
-//         autoIncrement: true,
-//         allowNull: false,
-//         primaryKey: true
-//     },
-//     name : {
-//         allowNull: false,
-//         type: Sequelize.STRING,
-//     },
-//     mail : {
-//         allowNull: false,
-//         type: Sequelize.STRING,
-//     }
-// })
+class User {
+    constructor(name, mail){
+        this.name = name
+        this.mail = mail
+    }
 
-// module.exports = User;`
+    static countUsers(name, mail){
+        const _db = getDb()
+        return _db.collection('users').count()
+    }
+
+    static getUser(){
+        const _db = getDb()
+        return _db.collection('users').findOne()
+    }
+
+    static insertUser(name, mail){
+        const _db = getDb()
+        const _user = new User(name, mail)
+        return _db.collection('users').insertOne(_user)
+    }
+
+
+}
+
+module.exports = User;
