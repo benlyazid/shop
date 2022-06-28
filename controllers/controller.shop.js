@@ -5,13 +5,13 @@ const OrderItem = require('../models/model.orderItem');
 
 exports.getProducts = (req, res, next) => {
 	Product.findAll()
-	.then(data => {
-		res.render('shop/product-list', {
-			prods: data,
-			pageTitle: 'All Products',
-			path: '/products'
+		.then(data => {
+			res.render('shop/product-list', {
+				prods: data,
+				pageTitle: 'All Products',
+				path: '/products'
+			})
 		})
-	})
 		.catch(err => {
 			if (err)
 				console.log(err)
@@ -21,20 +21,20 @@ exports.getProducts = (req, res, next) => {
 exports.getProduct = (req, res, next) => {
 	const productId = req.params.productId;
 	Product.findById(productId)
-	.then(product => {
-		if (!product)
-			res.redirect('/products')
-		else {
-			res.render('shop/product-detail', {
-				product: product,
-				pageTitle: product.title,
-				path: '/products'
-			});
-		}
-	})
-	.catch(err => {
-		console.log("ERROR IN FINDING PRODUCT BY INDEX : " + err)
-	})
+		.then(product => {
+			if (!product)
+				res.redirect('/products')
+			else {
+				res.render('shop/product-detail', {
+					product: product,
+					pageTitle: product.title,
+					path: '/products'
+				});
+			}
+		})
+		.catch(err => {
+			console.log("ERROR IN FINDING PRODUCT BY INDEX : " + err)
+		})
 };
 
 exports.getIndex = (req, res, next) => {
@@ -53,84 +53,65 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {
-	req.user.getCart()
-		.then(cart => {
-			return cart.getProducts()
-				.then(products => {
-					res.render('shop/cart', {
-						path: '/cart',
-						pageTitle: 'Your Cart',
-						products: products
-					})
-				})
+	const promises = []
+	User.getUser(req.user._id)
+		.then(async user => {
+			const items = user.cart.items
+			const products = []
+			for (let index = 0; index < items.length; index++) {
+				const item = items[index];
+				promises.push(
+					Product.findById(item.productId)
+						.then(product => {
+							product.quantity = item.quantity
+							products.push(product)
+						})
+						.catch(err => console.log(err))
+				)
+			}
+			await Promise.all(promises)
+			res.render('shop/cart', {
+				path: '/cart',
+				pageTitle: 'Your Cart',
+				products: products
+			})
 		})
-		.catch(
-			err => console.log("error is : ", err))
+		.catch(err => console.log("error is : ", err))
 };
 
-exports.postCart = (req, res, next) => { // add product as parameter to show it in the cart 
+exports.postCart = (req, res, next) => {
 	const productId = req.body.productId;
-	let fetchedCart;
-	let newQuantity = 1
-	req.user.getCart()
-		.then(cart => {
-			fetchedCart = cart;
-			return cart.getProducts({
-				where: {
-					id: productId
-				}
-			})
+	User.addProductToCart(productId, req.user)
+		.then(ret => {
+			console.log(ret)
+			res.redirect('/products')
 		})
-		.then(products => {
-			let product;
-			if (products.length > 0) {
-				product = products[0]
-			}
-			if (product) { //? product already exesiste in cart
-				//> Update Product quantity
-				const oldQuantity = product.cartItem.quantity
-				newQuantity = oldQuantity + 1;
-				return product
-			}
-			return Product.findByPk(productId)
+		.catch(err => {
+			console.log(err)
 		})
-		.then(product => {
-			console.log("PRODUCT IS " + product + " quatity " + newQuantity)
-			return fetchedCart.addProduct(product, {
-				through:
-				{
-					quantity: newQuantity
-				}
-			})
-		})
-		.then(ans => res.redirect('/products'))
-		.catch(
-			err => console.log("error is : ", err))
 };
 
 exports.deleteItem = (req, res, next) => {
 	const productId = req.body.productId
-	let fetchedCart
-	let product
-	req.user.getCart()
-		.then(cart => {
-			fetchedCart = cart
-			return cart.getProducts({ where: { id: productId } })
-		})
-		.then(products => {
-			product = products[0]
-			let newQuantity = product.cartItem.quantity - 1
-			if (newQuantity > 0) {
-				return fetchedCart.addProduct(product, {
-					through:
-					{
-						quantity: newQuantity
-					}
-				})
+	let updatedCart
+	let productIndex
+	let products
+	User.getUser(req.user._id)
+		.then(user => {
+			updatedCart = user.cart
+			products = updatedCart.items
+			productIndex = products.findIndex(prd => prd.productId == productId)
+			if (productIndex != -1) {
+				let newQuantity = products[productIndex].quantity - 1
+				if (newQuantity == 0) {
+					updatedCart.items.splice(productIndex, 1)
+				}
+				else {
+					updatedCart.items[productIndex].quantity = newQuantity
+				}
+				return User.updateCart(req.user._id, updatedCart)
 			}
-			else {
-				return product.cartItem.destroy()
-			}
+			return Promise.resolve()
 		})
 		.then(data => {
 			res.redirect('/cart')
@@ -146,9 +127,8 @@ exports.getOrders = (req, res, next) => {
 				pageTitle: 'Your Orders',
 				orders: orders
 			});
-
 		})
-		.catch()
+		.catch(err => console.log(err))
 };
 
 exports.getCheckout = (req, res, next) => {
@@ -160,11 +140,12 @@ exports.getCheckout = (req, res, next) => {
 
 exports.createOrder = (req, res, next) => {
 	let _products, _fetchedCart;
-	req.user.getCart()
-		.then(cart => {
-			_fetchedCart = cart
-			return cart.getProducts();
-		})
+	let _cart = req.user.cart
+	// req.user.getCart()
+		// .then(cart => {
+	_fetchedCart = cart
+	return cart.getProducts();
+		// })
 		.then(products => {
 			_products = products
 			return req.user.createOrder()
@@ -182,7 +163,6 @@ exports.createOrder = (req, res, next) => {
 			return _fetchedCart.setProducts(null)
 		})
 		.then(result => {
-
 			console.log("data have been inserted in order Table")
 			res.redirect('/orders')
 		})

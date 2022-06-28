@@ -20,7 +20,7 @@ app.set('views', 'views');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use((req, res, next) =>{
+app.use((req, res, next) => {
 
     console.log('***********************************')
     console.log('REQUSET URL IS ' + req.url)
@@ -28,35 +28,35 @@ app.use((req, res, next) =>{
     next()
 })
 
-app.use((req, res, next) =>{
+app.use((req, res, next) => {
     console.log()
-    connectToMongo(() =>{
+    connectToMongo(() => {
         User.countUsers()
-            .then(count =>{
-                if (count  == 0){
+            .then(count => {
+                if (count == 0) {
                     console.log("There is no user")
                     return User.insertUser('user', 'user@.admin.shop.ma')
-                        .then(()=> User.getUser())
+                        .then(() => User.getUser())
                 }
-                else{
+                else {
                     console.log("There is a user")
                     return User.getUser()
                 }
             })
             .then(user => {
-                console.log("user is : " + user.mail)            
+                console.log("user is : " + user.mail)
                 console.log("Start listening")
                 req.user = user
                 next()
             })
-            .catch(err =>{
+            .catch(err => {
                 console.log("error is : \n\n" + err)
             })
-        })
-        
     })
-    
-        
+
+})
+
+
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 
