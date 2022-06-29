@@ -1,7 +1,12 @@
 const mongodb = require('mongodb')
 const MongoClient = mongodb.MongoClient
+const mongoose = require('mongoose')
+
+
 const nodeUserPassword = '3oMAodrz4650SFOQ'
-const url = `mongodb+srv://node_user:${nodeUserPassword}@cluster0.xohjs8d.mongodb.net/shop?retryWrites=true&w=majority`
+const user = 'node_user' //! admin user
+const db = 'shop'
+const url = `mongodb+srv://${user}:${nodeUserPassword}@cluster0.xohjs8d.mongodb.net/${db}?retryWrites=true&w=majority`
 let _db;
 
 const connectToMongo = (callBack) =>{
@@ -22,5 +27,11 @@ const getDb =() =>{
 	throw "No Database Found !"
 }
 
-exports.connectToMongo = connectToMongo
+const connectToMongoose = () =>{
+	return mongoose.connect(url)
+}
+
+
 exports.getDb = getDb
+exports.connectToMongo = connectToMongo
+exports.connectToMongoose = connectToMongoose

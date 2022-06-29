@@ -1,4 +1,5 @@
 const path = require('path');
+const mongoose = require('mongoose')
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -6,6 +7,7 @@ const bodyParser = require('body-parser');
 const errorController = require('./controllers/controller.error');
 
 const connectToMongo = require('./util/database').connectToMongo
+const connectToMongoose = require('./util/database').connectToMongoose
 
 const adminRoutes = require('./routes/route.admin');
 const shopRoutes = require('./routes/route.shop');
@@ -28,38 +30,19 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use((req, res, next) => {
-    console.log()
-    connectToMongo(() => {
-        User.countUsers()
-            .then(count => {
-                if (count == 0) {
-                    console.log("There is no user")
-                    return User.insertUser('user', 'user@.admin.shop.ma')
-                        .then(() => User.getUser())
-                }
-                else {
-                    console.log("There is a user")
-                    return User.getUser()
-                }
-            })
-            .then(user => {
-                console.log("user is : " + user.mail)
-                console.log("Start listening")
-                req.user = user
-                next()
-            })
-            .catch(err => {
-                console.log("error is : \n\n" + err)
-            })
-    })
-
-})
-
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 
 app.use(errorController.get404);
-app.listen(3000);
 
+
+
+connectToMongoose()
+    .then((res)=> {
+        console.log("CONNECT SUCCEFULLY....\n" +  JSON.stringify(res))
+        app.listen(3000);
+    })
+    .catch(err => {
+        console.log("ERROR ON CONNECT....\n" + err)
+    })

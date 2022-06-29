@@ -140,31 +140,31 @@ exports.getCheckout = (req, res, next) => {
 
 exports.createOrder = (req, res, next) => {
 	let _products, _fetchedCart;
-	let _cart = req.user.cart
-	// req.user.getCart()
-		// .then(cart => {
-	_fetchedCart = cart
-	return cart.getProducts();
-		// })
-		.then(products => {
-			_products = products
-			return req.user.createOrder()
-		})
-		.then(order => {
-			order.addProducts(
-				_products.map(product => {
-					product.orderItem = { quantity: product.cartItem.quantity }
-					return product
-				})
-			)
-		})
-		.then(result => {
-			console.log("data hase been removed from cart")
-			return _fetchedCart.setProducts(null)
-		})
-		.then(result => {
-			console.log("data have been inserted in order Table")
-			res.redirect('/orders')
-		})
-		.catch(err => console.log("error in inserting order \n\n" + err))
+	// let _cart = req.user.cart
+	// // req.user.getCart()
+	// 	// .then(cart => {
+	// _fetchedCart = cart
+	// return cart.getProducts();
+	// 	// })
+	// 	.then(products => {
+	// 		_products = products
+	// 		return req.user.createOrder()
+	// 	})
+	// 	.then(order => {
+	// 		order.addProducts(
+	// 			_products.map(product => {
+	// 				product.orderItem = { quantity: product.cartItem.quantity }
+	// 				return product
+	// 			})
+	// 		)
+	// 	})
+	// 	.then(result => {
+	// 		console.log("data hase been removed from cart")
+	// 		return _fetchedCart.setProducts(null)
+	// 	})
+	// 	.then(result => {
+	// 		console.log("data have been inserted in order Table")
+	// 		res.redirect('/orders')
+	// 	})
+	// 	.catch(err => console.log("error in inserting order \n\n" + err))
 }
