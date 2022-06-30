@@ -16,7 +16,7 @@ exports.postAddProduct = (req, res, next) => {
 	const imageUrl = req.body.imageUrl;
 	const price = req.body.price;
 	const description = req.body.description;
-	const product = new Product(title, price, description, imageUrl, req.user._id);
+	const product = new Product({title  : title, price : price, description :  description, imageUrl  : imageUrl});
 	product.save()
 		.then((data) => {
 			console.log("DATA HAS BEEN INSERTED....")
@@ -52,8 +52,14 @@ exports.postEditProduct = (req, res, next) => {
 	const imageUrl = req.body.imageUrl;
 	const price = req.body.price;
 	const description = req.body.description;
-	const product = new Product(title, price, description, imageUrl, req.user._id);
-	Product.updateProduct(productId, product)
+	// const product = new Product(title, price, description, imageUrl, req.user._id);
+	Product.findByIdAndUpdate(ObjectId(productId), {
+		title : title,
+		imageUrl : imageUrl,
+		description : description,
+		price : price
+	})
+	// Product.updateProduct(productId, product)
 		.then(data => {
 			console.log(data)
 			res.redirect('/')
@@ -66,7 +72,7 @@ exports.postEditProduct = (req, res, next) => {
 
 
 exports.getProducts = (req, res, next) => {
-	Product.findAll().then(products => {
+	Product.find().then(products => {
 		console.log(products[0]._id)
 		// req.user.getProducts().then(products => {
 		res.render('admin/products', {

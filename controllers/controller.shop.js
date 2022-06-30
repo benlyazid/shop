@@ -2,9 +2,10 @@ const Product = require('../models/model.product');
 const Cart = require('../models/model.cart');
 const User = require('../models/model.user');
 const OrderItem = require('../models/model.orderItem');
+const { ObjectId } = require('mongodb');
 
 exports.getProducts = (req, res, next) => {
-	Product.findAll()
+	Product.find()
 		.then(data => {
 			res.render('shop/product-list', {
 				prods: data,
@@ -20,11 +21,12 @@ exports.getProducts = (req, res, next) => {
 
 exports.getProduct = (req, res, next) => {
 	const productId = req.params.productId;
-	Product.findById(productId)
+	Product.findById(ObjectId(productId))
 		.then(product => {
 			if (!product)
 				res.redirect('/products')
 			else {
+				console.log(product)
 				res.render('shop/product-detail', {
 					product: product,
 					pageTitle: product.title,
@@ -38,7 +40,7 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
-	Product.findAll()
+	Product.find()
 		.then(data => {
 			res.render('shop/index', {
 				prods: data,

@@ -1,20 +1,17 @@
 const path = require('path');
 const mongoose = require('mongoose')
-
 const express = require('express');
 const bodyParser = require('body-parser');
-
 const errorController = require('./controllers/controller.error');
-
-const connectToMongo = require('./util/database').connectToMongo
-const connectToMongoose = require('./util/database').connectToMongoose
-
 const adminRoutes = require('./routes/route.admin');
 const shopRoutes = require('./routes/route.shop');
+const User = require('./models/model.user')
+const connectToMongoose = require('./util/database').connectToMongoose
+
+
 
 const app = express();
 
-const User = require('./models/model.user')
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
@@ -40,9 +37,27 @@ app.use(errorController.get404);
 
 connectToMongoose()
     .then((res)=> {
-        console.log("CONNECT SUCCEFULLY....\n" +  JSON.stringify(res))
+        console.log("CONNECT SUCCEFULLY....\n" )
+        User.count().then(res =>{
+            console.log(res)
+            if (res != 0){
+                console.log("USER ALREADY IN DATABASE :)")
+            }
+            else{
+                //> insert  a new user
+
+                console.log("THERE IS NO USER IN DATABASE :(")
+                const user = new User({name : "seven", mail : "seven.admin.@shop.ma", cart : {items : []}})
+                user.save().then(res => {
+                    console.log("INSERT USER SUCCEFULLY...")
+                })
+                .catch(err => console.log("ERROR IN INSERTING YHE USER " + err))
+            }
+        })
+        .catch(err => console.log(err))
         app.listen(3000);
     })
     .catch(err => {
         console.log("ERROR ON CONNECT....\n" + err)
     })
+
