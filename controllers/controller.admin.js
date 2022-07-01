@@ -1,13 +1,12 @@
 const Product = require('../models/model.product');
-const fs = require('fs');
 const { ObjectId } = require('mongodb');
-const { Console } = require('console');
+
+
 exports.getAddProduct = (req, res, next) => {
 	res.render('admin/edit-product', {
 		pageTitle: 'Add Product',
 		path: '/admin/add-product',
 		editing: "",
-
 	});
 };
 
@@ -68,11 +67,9 @@ exports.postEditProduct = (req, res, next) => {
 	})
 }
 
-
 exports.getProducts = (req, res, next) => {
 	Product.find().then(products => {
 		console.log(products[0]._id)
-		// req.user.getProducts().then(products => {
 		res.render('admin/products', {
 			prods: products,
 			pageTitle: 'Admin Products',
@@ -88,7 +85,6 @@ exports.getProducts = (req, res, next) => {
 exports.deleteProduct = (req, res, next) => {
 	const productId = req.body.productId;
 	Product.findByIdAndDelete(productId)
-	// Product.deleteProduct(productId)
 	.then(data => {
 		console.log(data)
 		res.redirect('/admin/products')

@@ -27,7 +27,7 @@ app.use((req, res, next) => {
     User.findOne()
     .then(user =>{
         req.user = user
-        console.log(user)
+        // console.log(user)
         next()
     })
     .catch(err => {

@@ -1,7 +1,6 @@
 const Product = require('../models/model.product');
-const Cart = require('../models/model.cart');
 const User = require('../models/model.user');
-const OrderItem = require('../models/model.orderItem');
+const Order = require('../models/model.order');
 const { ObjectId } = require('mongodb');
 
 exports.getProducts = (req, res, next) => {
@@ -22,11 +21,11 @@ exports.getProducts = (req, res, next) => {
 exports.getProduct = (req, res, next) => {
 	const productId = req.params.productId;
 	Product.findById(ObjectId(productId))
+	.populate('userId')
 		.then(product => {
 			if (!product)
 				res.redirect('/products')
 			else {
-				console.log(product)
 				res.render('shop/product-detail', {
 					product: product,
 					pageTitle: product.title,
@@ -55,37 +54,44 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {
-	const promises = []
-	User.getUser(req.user._id)
-		.then(async user => {
-			const items = user.cart.items
-			const products = []
-			for (let index = 0; index < items.length; index++) {
-				const item = items[index];
-				promises.push(
-					Product.findById(item.productId)
-						.then(product => {
-							product.quantity = item.quantity
-							products.push(product)
-						})
-						.catch(err => console.log(err))
-				)
-			}
-			await Promise.all(promises)
-			res.render('shop/cart', {
-				path: '/cart',
-				pageTitle: 'Your Cart',
-				products: products
-			})
+	const productsFetchedFromCart = []
+	User.findById(req.user._id)
+	.populate('cart.items.productId')
+	.then(data => {
+		console.log(data)
+		data.cart.items.forEach(element => {
+			let product = element.productId
+			product.quantity = element.quantity
+			productsFetchedFromCart.push(product)
+		});
+
+		//> ask twelve about this tommorrow why we can't print to quantity but the cart.ejs can find it 
+		console.log('********************************************************')
+		productsFetchedFromCart.forEach( p => console.log(p.title + "    " + p.quantity + "\n\n" + p))
+		console.log('********************************************************')
+
+		res.render('shop/cart', {
+			path: '/cart',
+			pageTitle: 'Your Cart',
+			products: productsFetchedFromCart
 		})
-		.catch(err => console.log("error is : ", err))
+	})
+	.catch(err => console.log(err))
 };
 
 exports.postCart = (req, res, next) => {
-	// todo get cart items ...inseert item update cart
-	
 	const productId = req.body.productId;
-	User.addProductToCart(productId, req.user)
+	const _item = {
+		productId : productId,
+		quantity : 1
+	}
+	const _itemIndex = req.user.cart.items.findIndex((item => item.productId == productId))
+	console.log("index of product in cart is " + _itemIndex)
+	if (_itemIndex == -1)
+		req.user.cart.items.push(_item)
+	else
+		req.user.cart.items[_itemIndex].quantity += 1
+	req.user.save()
 		.then(ret => {
 			console.log(ret)
 			res.redirect('/products')
@@ -97,30 +103,16 @@ exports.postCart = (req, res, next) => {
 
 exports.deleteItem = (req, res, next) => {
 	const productId = req.body.productId
-	let updatedCart
-	let productIndex
-	let products
-	User.getUser(req.user._id)
-		.then(user => {
-			updatedCart = user.cart
-			products = updatedCart.items
-			productIndex = products.findIndex(prd => prd.productId == productId)
-			if (productIndex != -1) {
-				let newQuantity = products[productIndex].quantity - 1
-				if (newQuantity == 0) {
-					updatedCart.items.splice(productIndex, 1)
-				}
-				else {
-					updatedCart.items[productIndex].quantity = newQuantity
-				}
-				return User.updateCart(req.user._id, updatedCart)
-			}
-			return Promise.resolve()
-		})
-		.then(data => {
-			res.redirect('/cart')
-		})
-		.catch(err => console.log(err))
+	const user = req.user	
+	let productIndex = user.cart.items.findIndex(item => item.productId == productId)
+	if (!productIndex)
+		res.redirect('/cart')
+	user.cart.items.splice(productIndex, 1)
+	user.save()
+	.then(data => {
+		res.redirect('/cart')
+	})
+	.catch(err => console.log(err))
 }
 
 exports.getOrders = (req, res, next) => {
@@ -143,7 +135,32 @@ exports.getCheckout = (req, res, next) => {
 };
 
 exports.createOrder = (req, res, next) => {
-	let _products, _fetchedCart;
+	let cartItems = req.user.cart.items
+	const productsFetchedFromCart = []
+	User.findById(req.user._id)
+	.populate('cart.items.productId')
+	.then(data => {
+		data.cart.items.forEach(element => {
+			let product = element.productId
+			product.quantity = element.quantity
+			productsFetchedFromCart.push(product)
+		});
+		const order = new Order({
+			products  : productsFetchedFromCart,
+			user : {
+				name :  req.user.name,
+				userId : req.user._id
+			}
+		})
+		order.save()
+		.then(data => {
+			res.redirect('/orders')
+		})
+		.catch(err => console.log("err in order " + err))
+	})
+}
+
+
 	// let _cart = req.user.cart
 	// // req.user.getCart()
 	// 	// .then(cart => {
@@ -171,4 +188,3 @@ exports.createOrder = (req, res, next) => {
 	// 		res.redirect('/orders')
 	// 	})
 	// 	.catch(err => console.log("error in inserting order \n\n" + err))
-}

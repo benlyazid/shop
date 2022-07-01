@@ -1,6 +1,4 @@
 const { ObjectId } = require('mongodb');
-
-const getDb  = require('../util/database').getDb
 const mongoose = require('mongoose')
 
 const UserShema = new mongoose.Schema({
@@ -14,8 +12,8 @@ const UserShema = new mongoose.Schema({
     },
     cart : {
         items : [{
-            productId : {
-                ref : 'Product',
+        productId : {
+            ref : 'Product',
                 type : mongoose.Schema.ObjectId,
                 required : true
             },
@@ -28,4 +26,3 @@ const UserShema = new mongoose.Schema({
 })
 
 module.exports = mongoose.model('User', UserShema);
-
