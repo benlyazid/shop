@@ -24,7 +24,15 @@ app.use((req, res, next) => {
     console.log('***********************************')
     console.log('REQUSET URL IS ' + req.url)
     console.log('***********************************')
-    next()
+    User.findOne()
+    .then(user =>{
+        req.user = user
+        console.log(user)
+        next()
+    })
+    .catch(err => {
+        console.log("error iin getting user")
+    })
 })
 
 
@@ -32,7 +40,6 @@ app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 
 app.use(errorController.get404);
-
 
 
 connectToMongoose()
@@ -60,4 +67,5 @@ connectToMongoose()
     .catch(err => {
         console.log("ERROR ON CONNECT....\n" + err)
     })
+
 

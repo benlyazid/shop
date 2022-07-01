@@ -82,6 +82,8 @@ exports.getCart = (req, res, next) => {
 };
 
 exports.postCart = (req, res, next) => {
+	// todo get cart items ...inseert item update cart
+	
 	const productId = req.body.productId;
 	User.addProductToCart(productId, req.user)
 		.then(ret => {
@@ -89,7 +91,7 @@ exports.postCart = (req, res, next) => {
 			res.redirect('/products')
 		})
 		.catch(err => {
-			console.log(err)
+			console.log(err);
 		})
 };
 

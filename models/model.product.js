@@ -18,6 +18,11 @@ const ProductShema = new mongoose.Schema({
     description : {
         type : String,
         required : true
+    },
+    userId : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : 'User',
+        required : true
     }
 })
 

@@ -16,7 +16,7 @@ exports.postAddProduct = (req, res, next) => {
 	const imageUrl = req.body.imageUrl;
 	const price = req.body.price;
 	const description = req.body.description;
-	const product = new Product({title  : title, price : price, description :  description, imageUrl  : imageUrl});
+	const product = new Product({title  : title, price : price, description :  description, imageUrl  : imageUrl, userId : req.user._id});
 	product.save()
 		.then((data) => {
 			console.log("DATA HAS BEEN INSERTED....")
@@ -47,27 +47,25 @@ exports.getEditProduct = (req, res, next) => {
 
 exports.postEditProduct = (req, res, next) => {
 	const productId = req.query.productId
-	console.log("ID IS " + productId)
 	const title = req.body.title;
 	const imageUrl = req.body.imageUrl;
 	const price = req.body.price;
 	const description = req.body.description;
-	// const product = new Product(title, price, description, imageUrl, req.user._id);
 	Product.findByIdAndUpdate(ObjectId(productId), {
 		title : title,
 		imageUrl : imageUrl,
 		description : description,
-		price : price
+		price : price,
+		userId : req.user._id
 	})
-	// Product.updateProduct(productId, product)
-		.then(data => {
-			console.log(data)
-			res.redirect('/')
-		})
-		.catch(err => {
-			if (err)
-				console.log(err)
-		})
+	.then(data => {
+		console.log(data)
+		res.redirect('/')
+	})
+	.catch(err => {
+		if (err)
+			console.log(err)
+	})
 }
 
 
@@ -89,7 +87,8 @@ exports.getProducts = (req, res, next) => {
 
 exports.deleteProduct = (req, res, next) => {
 	const productId = req.body.productId;
-	Product.deleteProduct(productId)
+	Product.findByIdAndDelete(productId)
+	// Product.deleteProduct(productId)
 	.then(data => {
 		console.log(data)
 		res.redirect('/admin/products')
@@ -98,6 +97,3 @@ exports.deleteProduct = (req, res, next) => {
 			console.log(err)
 	})
 }
-
-// http://store/produts/159 req.params 
-// http://store/produts?productId=159 req.query
