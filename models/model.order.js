@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const OrderShema = new mongoose.Schema({
     products : [{
-        product : { 
+        product : {
             type:  Object,
             required : true
         },

@@ -116,7 +116,8 @@ exports.deleteItem = (req, res, next) => {
 }
 
 exports.getOrders = (req, res, next) => {
-	req.user.getOrders({ include: ['products'] })
+	Order.find()
+	// req.user.getOrders({ include: ['products'] })
 		.then(orders => {
 			res.render('shop/orders', {
 				path: '/orders',
@@ -141,16 +142,17 @@ exports.createOrder = (req, res, next) => {
 	.populate('cart.items.productId')
 	.then(data => {
 		data.cart.items.forEach(element => {
-			let product = element.productId
-			product.quantity = element.quantity
-			productsFetchedFromCart.push(product)
+			let item = {}
+			item.product = element.productId
+			item.quantity = element.quantity
+			productsFetchedFromCart.push(item)
 		});
 		const order = new Order({
 			products  : productsFetchedFromCart,
 			user : {
 				name :  req.user.name,
 				userId : req.user._id
-			}
+			}	
 		})
 		order.save()
 		.then(data => {
@@ -159,32 +161,3 @@ exports.createOrder = (req, res, next) => {
 		.catch(err => console.log("err in order " + err))
 	})
 }
-
-
-	// let _cart = req.user.cart
-	// // req.user.getCart()
-	// 	// .then(cart => {
-	// _fetchedCart = cart
-	// return cart.getProducts();
-	// 	// })
-	// 	.then(products => {
-	// 		_products = products
-	// 		return req.user.createOrder()
-	// 	})
-	// 	.then(order => {
-	// 		order.addProducts(
-	// 			_products.map(product => {
-	// 				product.orderItem = { quantity: product.cartItem.quantity }
-	// 				return product
-	// 			})
-	// 		)
-	// 	})
-	// 	.then(result => {
-	// 		console.log("data hase been removed from cart")
-	// 		return _fetchedCart.setProducts(null)
-	// 	})
-	// 	.then(result => {
-	// 		console.log("data have been inserted in order Table")
-	// 		res.redirect('/orders')
-	// 	})
-	// 	.catch(err => console.log("error in inserting order \n\n" + err))
