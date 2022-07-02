@@ -57,19 +57,14 @@ exports.getCart = (req, res, next) => {
 	const productsFetchedFromCart = []
 	User.findById(req.user._id)
 	.populate('cart.items.productId')
+	.lean()
 	.then(data => {
-		console.log(data)
 		data.cart.items.forEach(element => {
 			let product = element.productId
 			product.quantity = element.quantity
 			productsFetchedFromCart.push(product)
 		});
-
-		//> ask twelve about this tommorrow why we can't print to quantity but the cart.ejs can find it 
-		console.log('********************************************************')
-		productsFetchedFromCart.forEach( p => console.log(p.title + "    " + p.quantity + "\n\n" + p))
-		console.log('********************************************************')
-
+		console.log(productsFetchedFromCart)
 		res.render('shop/cart', {
 			path: '/cart',
 			pageTitle: 'Your Cart',
@@ -117,8 +112,10 @@ exports.deleteItem = (req, res, next) => {
 
 exports.getOrders = (req, res, next) => {
 	Order.find()
-	// req.user.getOrders({ include: ['products'] })
+
 		.then(orders => {
+			console.log(orders[0].products)
+			
 			res.render('shop/orders', {
 				path: '/orders',
 				pageTitle: 'Your Orders',
@@ -145,6 +142,7 @@ exports.createOrder = (req, res, next) => {
 			let item = {}
 			item.product = element.productId
 			item.quantity = element.quantity
+			console.log(item)
 			productsFetchedFromCart.push(item)
 		});
 		const order = new Order({
@@ -154,9 +152,13 @@ exports.createOrder = (req, res, next) => {
 				userId : req.user._id
 			}	
 		})
+
 		order.save()
 		.then(data => {
-			res.redirect('/orders')
+			req.user.cart.items = []
+			req.user.save()
+			.then((data)=>{ res.redirect('/orders')})
+			.catch(err => console.log("err in order " + err))
 		})
 		.catch(err => console.log("err in order " + err))
 	})
