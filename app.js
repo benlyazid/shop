@@ -69,5 +69,3 @@ connectToMongoose()
     .catch(err => {
         console.log("ERROR ON CONNECT....\n" + err)
     })
-
-
