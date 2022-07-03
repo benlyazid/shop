@@ -4,6 +4,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const errorController = require('./controllers/controller.error');
 const adminRoutes = require('./routes/route.admin');
+const authRoutes = require('./routes/route.auth');
 const shopRoutes = require('./routes/route.shop');
 const User = require('./models/model.user')
 const connectToMongoose = require('./util/database').connectToMongoose
@@ -38,6 +39,7 @@ app.use((req, res, next) => {
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
+app.use(authRoutes);
 
 app.use(errorController.get404);
 
