@@ -114,8 +114,6 @@ exports.getOrders = (req, res, next) => {
 	Order.find()
 
 		.then(orders => {
-			console.log(orders[0].products)
-			
 			res.render('shop/orders', {
 				path: '/orders',
 				pageTitle: 'Your Orders',
@@ -133,16 +131,15 @@ exports.getCheckout = (req, res, next) => {
 };
 
 exports.createOrder = (req, res, next) => {
-	let cartItems = req.user.cart.items
 	const productsFetchedFromCart = []
 	User.findById(req.user._id)
 	.populate('cart.items.productId')
+	.lean()
 	.then(data => {
 		data.cart.items.forEach(element => {
 			let item = {}
-			item.product = element.productId
+			item.product = {...(element.productId)}
 			item.quantity = element.quantity
-			console.log(item)
 			productsFetchedFromCart.push(item)
 		});
 		const order = new Order({
@@ -163,3 +160,4 @@ exports.createOrder = (req, res, next) => {
 		.catch(err => console.log("err in order " + err))
 	})
 }
+
