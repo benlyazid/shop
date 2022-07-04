@@ -42,6 +42,7 @@ exports.getIndex = (req, res, next) => {
 	Product.find()
 		.then(data => {
 			res.render('shop/index', {
+				isLoggedIn : req.isLoggedIn,
 				prods: data,
 				pageTitle: 'Shop',
 				path: '/'

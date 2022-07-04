@@ -23,7 +23,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use((req, res, next) => {
 
     console.log('***********************************')
-    console.log('REQUSET URL IS ' + req.url)
+    console.log('REQUSET URL IS ' + req.headers.cookie)
     console.log('***********************************')
     User.findOne()
     .then(user =>{
