@@ -8,7 +8,7 @@ const authRoutes = require('./routes/route.auth');
 const shopRoutes = require('./routes/route.shop');
 const User = require('./models/model.user')
 const connectToMongoose = require('./util/database').connectToMongoose
-
+const Session = require('express-session')
 
 
 const app = express();
@@ -19,7 +19,11 @@ app.set('views', 'views');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(Session({
+    secret : "THis Is the Secret",
+    resave : false,
+    saveUninitialized : false
+}))
 app.use((req, res, next) => {
 
     console.log('***********************************')
