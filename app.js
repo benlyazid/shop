@@ -9,7 +9,20 @@ const shopRoutes = require('./routes/route.shop');
 const User = require('./models/model.user')
 const connectToMongoose = require('./util/database').connectToMongoose
 const Session = require('express-session')
+var MongoDBStore = require('connect-mongodb-session')(Session);
+const nodeUserPassword = '3oMAodrz4650SFOQ'
+const user = 'node_user'
+const db = 'shop'
+const url = `mongodb+srv://${user}:${nodeUserPassword}@cluster0.xohjs8d.mongodb.net/${db}`
 
+var store = new MongoDBStore({
+    uri: url,
+    collection: 'Sessions'
+});
+
+store.on('error', (errore)=>{
+    console.log('Session errore ' + errore)
+})
 
 const app = express();
 
@@ -22,7 +35,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(Session({
     secret : "THis Is the Secret",
     resave : false,
-    saveUninitialized : false
+    saveUninitialized : false.valueOf,
+    store : store
 }))
 app.use((req, res, next) => {
 
@@ -36,7 +50,7 @@ app.use((req, res, next) => {
         next()
     })
     .catch(err => {
-        console.log("error iin getting user")
+        console.log("error in getting user " + err)
     })
 })
 
@@ -46,7 +60,6 @@ app.use(shopRoutes);
 app.use(authRoutes);
 
 app.use(errorController.get404);
-
 
 connectToMongoose()
     .then((res)=> {
@@ -73,3 +86,5 @@ connectToMongoose()
     .catch(err => {
         console.log("ERROR ON CONNECT....\n" + err)
     })
+
+    
