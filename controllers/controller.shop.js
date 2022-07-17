@@ -15,7 +15,7 @@ exports.getProducts = (req, res, next) => {
 		})
 		.catch(err => {
 			if (err)
-				console.log(err)
+			console.log(err)
 		})
 };
 
@@ -30,7 +30,8 @@ exports.getProduct = (req, res, next) => {
 				res.render('shop/product-detail', {
 					product: product,
 					pageTitle: product.title,
-					path: '/products'
+					path: '/products',
+					isLoggedIn : req.session.isLoggedIn
 				});
 			}
 		})
@@ -42,8 +43,9 @@ exports.getProduct = (req, res, next) => {
 exports.getIndex = (req, res, next) => {
 	Product.find()
 		.then(data => {
+			console.log(req.session.isLoggedIn)
 			res.render('shop/index', {
-				isLoggedIn : req.isLoggedIn,
+				isLoggedIn : req.session.isLoggedIn,
 				prods: data,
 				pageTitle: 'Shop',
 				path: '/'
@@ -57,7 +59,7 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCart = (req, res, next) => {
 	const productsFetchedFromCart = []
-	User.findById(req.user._id)
+	User.findById(req.session.user._id)
 	.populate('cart.items.productId')
 	.lean()
 	.then(data => {
@@ -70,7 +72,8 @@ exports.getCart = (req, res, next) => {
 		res.render('shop/cart', {
 			path: '/cart',
 			pageTitle: 'Your Cart',
-			products: productsFetchedFromCart
+			products: productsFetchedFromCart,
+			isLoggedIn : req.session.isLoggedIn,
 		})
 	})
 	.catch(err => console.log(err))
@@ -82,13 +85,13 @@ exports.postCart = (req, res, next) => {
 		productId : productId,
 		quantity : 1
 	}
-	const _itemIndex = req.user.cart.items.findIndex((item => item.productId == productId))
+	const _itemIndex = req.session.user.cart.items.findIndex((item => item.productId == productId))
 	console.log("index of product in cart is " + _itemIndex)
 	if (_itemIndex == -1)
-		req.user.cart.items.push(_item)
+		req.session.user.cart.items.push(_item)
 	else
-		req.user.cart.items[_itemIndex].quantity += 1
-	req.user.save()
+		req.session.user.cart.items[_itemIndex].quantity += 1
+	req.session.user.save()
 		.then(ret => {
 			console.log(ret)
 			res.redirect('/products')
@@ -100,7 +103,7 @@ exports.postCart = (req, res, next) => {
 
 exports.deleteItem = (req, res, next) => {
 	const productId = req.body.productId
-	const user = req.user	
+	const user = req.session.user	
 	let productIndex = user.cart.items.findIndex(item => item.productId == productId)
 	if (!productIndex)
 		res.redirect('/cart')
@@ -119,7 +122,8 @@ exports.getOrders = (req, res, next) => {
 			res.render('shop/orders', {
 				path: '/orders',
 				pageTitle: 'Your Orders',
-				orders: orders
+				orders: orders,
+				isLoggedIn : req.session.isLoggedIn
 			});
 		})
 		.catch(err => console.log(err))
@@ -134,7 +138,7 @@ exports.getCheckout = (req, res, next) => {
 
 exports.createOrder = (req, res, next) => {
 	const productsFetchedFromCart = []
-	User.findById(req.user._id)
+	User.findById(req.session.user._id)
 	.populate('cart.items.productId')
 	.lean()
 	.then(data => {
@@ -147,15 +151,15 @@ exports.createOrder = (req, res, next) => {
 		const order = new Order({
 			products  : productsFetchedFromCart,
 			user : {
-				name :  req.user.name,
-				userId : req.user._id
+				name :  req.session.user.name,
+				userId : req.session.user._id
 			}	
 		})
 
 		order.save()
 		.then(data => {
-			req.user.cart.items = []
-			req.user.save()
+			req.session.user.cart.items = []
+			req.session.user.save()
 			.then((data)=>{ res.redirect('/orders')})
 			.catch(err => console.log("err in order " + err))
 		})

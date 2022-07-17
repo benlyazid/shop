@@ -7,6 +7,7 @@ exports.getAddProduct = (req, res, next) => {
 		pageTitle: 'Add Product',
 		path: '/admin/add-product',
 		editing: "",
+		isLoggedIn : req.session.isLoggedIn,
 	});
 };
 
@@ -15,7 +16,7 @@ exports.postAddProduct = (req, res, next) => {
 	const imageUrl = req.body.imageUrl;
 	const price = req.body.price;
 	const description = req.body.description;
-	const product = new Product({title  : title, price : price, description :  description, imageUrl  : imageUrl, userId : req.user._id});
+	const product = new Product({title  : title, price : price, description :  description, imageUrl  : imageUrl, userId : req.session.user._id});
 	product.save()
 		.then((data) => {
 			console.log("DATA HAS BEEN INSERTED....")
@@ -33,19 +34,20 @@ exports.getEditProduct = (req, res, next) => {
 		.then((product) => {
 			if (!product)
 				return res.redirect('/')
-			console.log("__REQ IS " + product._id)
 			res.render('admin/edit-product', {
 				pageTitle: 'Edit Product',
 				path: '/admin/edit-product',
 				editing: editMode,
-				product: product
+				product: product,
+				isLoggedIn : req.session.isLoggedIn,
+
 			})
 		})
 		.catch(err => console.log(err))
 };
 
 exports.postEditProduct = (req, res, next) => {
-	const productId = req.query.productId
+	const productId = req.body.productId
 	const title = req.body.title;
 	const imageUrl = req.body.imageUrl;
 	const price = req.body.price;
@@ -55,10 +57,9 @@ exports.postEditProduct = (req, res, next) => {
 		imageUrl : imageUrl,
 		description : description,
 		price : price,
-		userId : req.user._id
+		userId : req.session.user._id
 	})
 	.then(data => {
-		console.log(data)
 		res.redirect('/')
 	})
 	.catch(err => {
@@ -71,15 +72,16 @@ exports.getProducts = (req, res, next) => {
 	Product.find().then(products => {
 		console.log(products[0]._id)
 		res.render('admin/products', {
+			isLoggedIn : req.session.isLoggedIn,
 			prods: products,
 			pageTitle: 'Admin Products',
 			path: '/admin/products'
 		})
 	})
-		.catch(err => {
-			if (err)
-				console.log(err)
-		})
+	.catch(err => {
+		if (err)
+			console.log(err)
+	})
 };
 
 exports.deleteProduct = (req, res, next) => {
