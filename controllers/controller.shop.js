@@ -81,24 +81,30 @@ exports.getCart = (req, res, next) => {
 
 exports.postCart = (req, res, next) => {
 	const productId = req.body.productId;
+	const user = req.session.user	
 	const _item = {
 		productId : productId,
 		quantity : 1
 	}
-	const _itemIndex = req.session.user.cart.items.findIndex((item => item.productId == productId))
+	const _itemIndex = user.cart.items.findIndex((item => item.productId == productId))
 	console.log("index of product in cart is " + _itemIndex)
 	if (_itemIndex == -1)
-		req.session.user.cart.items.push(_item)
+		user.cart.items.push(_item)
 	else
-		req.session.user.cart.items[_itemIndex].quantity += 1
-	req.session.user.save()
-		.then(ret => {
-			console.log(ret)
-			res.redirect('/products')
-		})
-		.catch(err => {
-			console.log(err);
-		})
+		user.cart.items[_itemIndex].quantity += 1
+	console.log("USER IS " + JSON.stringify(user))
+	console.log("USER id IS " + JSON.stringify(user._id))
+
+	User.findByIdAndUpdate(ObjectId(user._id), {
+		cart : user.cart,
+	})
+	.then(data => {
+		res.redirect('/products')
+	})
+	.catch(err => {
+		console.log(err)
+	})
+
 };
 
 exports.deleteItem = (req, res, next) => {
@@ -138,6 +144,8 @@ exports.getCheckout = (req, res, next) => {
 
 exports.createOrder = (req, res, next) => {
 	const productsFetchedFromCart = []
+	console.log("user is " +  JSON.stringify(req.session.user))
+	console.log("user_name is " +  JSON.stringify(req.session.user.mail))
 	User.findById(req.session.user._id)
 	.populate('cart.items.productId')
 	.lean()
@@ -151,7 +159,7 @@ exports.createOrder = (req, res, next) => {
 		const order = new Order({
 			products  : productsFetchedFromCart,
 			user : {
-				name :  req.session.user.name,
+				mail :  req.session.user.mail,
 				userId : req.session.user._id
 			}	
 		})
@@ -159,7 +167,9 @@ exports.createOrder = (req, res, next) => {
 		order.save()
 		.then(data => {
 			req.session.user.cart.items = []
-			req.session.user.save()
+			User.findByIdAndUpdate(ObjectId( req.session.user._id), {
+				cart : req.session.user.cart
+			})
 			.then((data)=>{ res.redirect('/orders')})
 			.catch(err => console.log("err in order " + err))
 		})

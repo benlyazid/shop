@@ -12,7 +12,7 @@ const OrderShema = new mongoose.Schema({
         }
     }],
     user : {
-        name : {
+        mail : {
             type : String,
             required : true
         },

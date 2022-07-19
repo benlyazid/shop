@@ -7,6 +7,9 @@
    <%- include('../includes/navigation.ejs') %>
 
     <main>
+        <% if (errorMessage) { %>
+            <div class="user-message user-message--error"><%= errorMessage %></div>
+        <% } %>
         <form class="login-form" action="/login" method="POST">
             <div class="form-control">
                 <label for="email">E-Mail</label>
@@ -16,7 +19,15 @@
                 <label for="password">Password</label>
                 <input type="password" name="password" id="password">
             </div>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <button class="btn" type="submit">Login</button>
         </form>
+        <!-- <form class="login-form" action="/loginWithIntra" method="POST">              
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="btn" type="submit">Login With Intra 42</button>
+        </form> -->
+        <a class="login-form" href="https://api.intra.42.fr/oauth/authorize?client_id=b22e551c17f2caf8076c66dffff335644bdaf61b21a925ce8dca0f88b1101d2a&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth42&response_type=code">
+            <button class="btn" type="submit">Login With Intra 42</button>
+        </a>
     </main>
 <%- include('../includes/end.ejs') %>

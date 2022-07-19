@@ -69,7 +69,7 @@ exports.postEditProduct = (req, res, next) => {
 }
 
 exports.getProducts = (req, res, next) => {
-	Product.find().then(products => {
+	Product.find(  ).then(products => {
 		console.log(products[0]._id)
 		res.render('admin/products', {
 			isLoggedIn : req.session.isLoggedIn,
