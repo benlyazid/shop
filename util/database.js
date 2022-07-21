@@ -1,9 +1,7 @@
 const mongoose = require('mongoose')
+require('dotenv').config()
 
-const nodeUserPassword = '3oMAodrz4650SFOQ'
-const user = 'node_user' //! admin user
-const db = 'shop'
-const url = `mongodb+srv://${user}:${nodeUserPassword}@cluster0.xohjs8d.mongodb.net/${db}?retryWrites=true&w=majority`
+const url = process.env.DATABSE_CONNECTION_URL
 
 const connectToMongoose = () =>{
 	return mongoose.connect(url)

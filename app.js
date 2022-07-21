@@ -11,19 +11,18 @@ const connectToMongoose = require('./util/database').connectToMongoose
 const Session = require('express-session');
 const json = require('body-parser/lib/types/json');
 var MongoDBStore = require('connect-mongodb-session')(Session);
-const nodeUserPassword = '3oMAodrz4650SFOQ'
-const user = 'node_user'
-const db = 'shop'
-const url = `mongodb+srv://${user}:${nodeUserPassword}@cluster0.xohjs8d.mongodb.net/${db}`
+require('dotenv').config()
+
+const url = process.env.DATABSE_URL
 const csrf = require('csurf')
 const flash = require('connect-flash')
-require('dotenv').config()
 var store = new MongoDBStore({
 	uri: url,
 	collection: 'Sessions'
 });
 
 store.on('error', (errore)=>{
+	console.log(url)
 	console.log('Session errore ' + errore)
 })
 
@@ -51,7 +50,8 @@ app.use((req, res, next) => {
 	console.log('***********************************')
 	console.log('REQUSET URL IS ' + req.url)
 	// console.log('REQUSET query IS ' + JSON.stringify(req.query))
-	console.log("env is   " + process.env.ROOT)
+	console.log("env is   " + process.env.DATABSE_URL)
+
 	console.log('***********************************')
 	next()
 })

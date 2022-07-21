@@ -1,11 +1,12 @@
 const bcrypt = require('bcryptjs');
-const flash = require('connect-flash/lib/flash');
 const User = require('../models/model.user');
-const Authenticator = require('../utils/42auth');
+const Authenticator = require('../util/42auth');
+const {validationResult} = require('express-validator')
+require('dotenv').config()
 
-UID="b22e551c17f2caf8076c66dffff335644bdaf61b21a925ce8dca0f88b1101d2a";
-SECRET="5123cf97f349cedb88da5bf5da2c57e122a5a7b23434a46edcf74d134c65e8b3";
-REDIRECT_URI='http://localhost:3000/auth42'
+UID= process.env.UID;
+SECRET= process.env.SECRET;
+REDIRECT_URI=process.env.REDIRECT_URI;
 
 exports.getLogin = (req, res, next) => {
 	let errorMessage = req.flash('errorMessage')
@@ -17,7 +18,11 @@ exports.getLogin = (req, res, next) => {
 		path: '/login',
 		pageTitle: 'Login',
 		isLoggedIn : false,
-		errorMessage : errorMessage
+		errorMessage : errorMessage,
+		oldData :{
+			email : "",
+			password : "",
+		}
 	});
 };
 
@@ -29,7 +34,17 @@ exports.postLogin = (req, res, next) => {
 		if (!user){
 			console.log("user not found")
 			req.flash('errorMessage', 'Invalide Email or Password')
-			return res.redirect('/login')
+			return res.status(422).render('auth/login', {
+				path: '/login',
+				pageTitle: 'Login',
+				isLoggedIn : false,
+				errorMessage :  req.flash('errorMessage'),
+				oldData :{
+				email : mail,
+				password : password
+				}
+		});
+
 		}
 		bcrypt.compare(password, user.password)
 		.then(doMatch => {
@@ -45,7 +60,16 @@ exports.postLogin = (req, res, next) => {
 			else{
 				req.flash('errorMessage', 'Invalide Email or Password')
 				console.log("password not mutch")
-				return res.redirect('/login')
+				return res.status(422).render('auth/login', {
+					path: '/login',
+					pageTitle: 'Login',
+					isLoggedIn : false,
+					errorMessage :  req.flash('errorMessage'),
+					oldData :{
+					email : mail,
+					password : password
+					}
+			});
 			}
 		})
 		.catch(err => {
@@ -70,7 +94,12 @@ exports.getSignup = (req, res, next) =>{
 		path : '/signup',
 		pageTitle : 'Signup',
 		isLoggedIn : false,
-		errorMessage : errorMessage
+		errorMessage : errorMessage,
+		oldData :{
+			email : "",
+			password : "",
+			confirmPassword : ""
+		}
 	})
 };
 
@@ -78,19 +107,36 @@ exports.postSignup = (req, res, next) =>{
 	const email = req.body.email
 	const password = req.body.password
 	const confirmPassword = req.body.confirmPassword
-	console.log("PostSignup  " + email + "   " +  password)
-	console.log("PostSignup  " + confirmPassword + "   " +  password)
-	if (password != confirmPassword){
-		req.flash('errorMessage', 'Password dosn\'t match')
-		return res.redirect('/signup')
-
+	const errors = validationResult(req).array();
+	console.log("-------------")
+	console.log(errors)
+	console.log(errors.isEmpty)
+	console.log("-------------")
+	if (!errors.isEmpty){
+		return res.status(422).render('auth/signup', {
+			path : '/signup',
+			pageTitle : 'Signup',
+			isLoggedIn : false,
+			errorMessage : errors[0].msg,
+			oldData :{
+				email : email,
+				password : password,
+				confirmPassword : confirmPassword
+			}
+		})
 	}
 	User.findOne({mail : email})
 	.then(user => {
 		console.log("User Found is " + user)
 		if (user){
 			req.flash('errorMessage', 'Email Already Exist')
-			return res.redirect('/signup')
+			return res.redirect('/signup', {
+				oldData :{
+					email : email,
+					password : password,
+					confirmPassword : confirmPassword
+				}
+			})
 		}
 		return bcrypt.hash(password, 7)
 		.then(hashedPassword => {
@@ -120,25 +166,75 @@ exports.postLoginWithIntra = (req, res, next) =>{
 	res.redirect('/')
 }
 
-exports.auth42 = (req, res, next) => {
-	console.log("THE CODE IS : " + req.query.code);
+exports.auth42 = async (req, res, next) => {
 	var app = new Authenticator(UID, SECRET, REDIRECT_URI);
-	var token = app.get_Access_token(req.query.code);
+	var data = await app.get_Access_token(req.query.code);
+	console.log(data.access_token)
 
-	token
+	//? get the acces token of the user
+	console.log("======================== auth user Data =========================");
+	console.log(data);
+	console.log("========================= 42 user data ==========================");
+	//? get the user info from 42 api
+	const accessToken  = data.access_token
+	app.get_user_data(accessToken)
 	.then((data) => {
-		// get the acces token of the user
-		console.log("======================== auth user Data =========================");
-		console.log(data);
-		console.log("========================= 42 user data ==========================");
-		// get the user info from 42 api
-		const accessToken  = data.access_token
-		app.get_user_data(accessToken)
-		.then((data) => {
-			console.log(data);
-			console.log("=============================================================");
-		});
-	});
+		const userEmail = data.email;
+		User.findOne({mail : userEmail})
+		.then(_user => {
+			if (_user){ //? user already in database
+				bcrypt.compare(toString(data.id), _user.password)
+				.then(doMatch => {
+					if (doMatch){
+						req.session.user = _user
+						req.session.isLoggedIn = true
+						req.session.save(err =>{
+							if (err)
+								console.log("err in session " + err)
+							return res.redirect('/')
+						})
+					}
+					else{
+						req.flash('errorMessage', 'This email is already used')
+						return res.redirect('/login')
+					}
+				})
+				.catch(err => {
+					console.login("ERR in Login " + err)
+				})
+			}
+			else {	//? new user that we should save in database
+				bcrypt.hash(toString(data.id), 7)
+				.then(hashedPassword => {
+					const newUser = new User({
+						mail : userEmail,
+						password : hashedPassword,
+						cart : { items : []}
+					})
+					return newUser.save()
+				})
+				.then(data => {
+					req.session.user = _user
+					req.session.isLoggedIn = true
+					req.session.save(err =>{
+						if (err)
+							console.log("err in session " + err)
+						return res.redirect('/')
+					})
+				})
+				.catch(err => {
+					console.log("err in saving user " + err)
+				})
+			}
+		})
+		.catch(err => console.log(err))
+	})
+	.catch(err => {
+		
+		console.log("=====CRASH========");
+		console.log(err)
+		console.log("=====CRASH========");
+	})
 
-	res.redirect('/')
+
 }
