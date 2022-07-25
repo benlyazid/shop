@@ -4,7 +4,9 @@ require('dotenv').config()
 const url = process.env.DATABSE_CONNECTION_URL
 
 const connectToMongoose = () =>{
-	return mongoose.connect(url)
+	return mongoose.connect(url, {
+		dbName : 'shop'
+	})
 }
 
-exports.connectToMongoose = connectToMongoose
+exports.connectToMongoose = connectToMongoose      

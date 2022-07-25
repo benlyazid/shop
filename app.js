@@ -50,8 +50,6 @@ app.use((req, res, next) => {
 	console.log('***********************************')
 	console.log('REQUSET URL IS ' + req.url)
 	// console.log('REQUSET query IS ' + JSON.stringify(req.query))
-	console.log("env is   " + process.env.DATABSE_URL)
-
 	console.log('***********************************')
 	next()
 })

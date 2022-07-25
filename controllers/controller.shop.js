@@ -6,6 +6,7 @@ const { ObjectId } = require('mongodb');
 exports.getProducts = (req, res, next) => {
 	Product.find()
 		.then(data => {
+			console.log("data : " + data)
 			res.render('shop/product-list', {
 				prods: data,
 				pageTitle: 'All Products',

@@ -107,17 +107,21 @@ exports.postSignup = (req, res, next) =>{
 	const email = req.body.email
 	const password = req.body.password
 	const confirmPassword = req.body.confirmPassword
+	let errorMessage = null
 	const errors = validationResult(req).array();
+	if (errors.length)
+		errorMessage =  errors[0].msg
 	console.log("-------------")
 	console.log(errors)
 	console.log(errors.isEmpty)
 	console.log("-------------")
-	if (!errors.isEmpty){
+	if (errors.length){
+		console.log("error was found " + errors)
 		return res.status(422).render('auth/signup', {
 			path : '/signup',
 			pageTitle : 'Signup',
 			isLoggedIn : false,
-			errorMessage : errors[0].msg,
+			errorMessage : errorMessage,
 			oldData :{
 				email : email,
 				password : password,
@@ -130,7 +134,15 @@ exports.postSignup = (req, res, next) =>{
 		console.log("User Found is " + user)
 		if (user){
 			req.flash('errorMessage', 'Email Already Exist')
-			return res.redirect('/signup', {
+			errorMessage = req.flash('errorMessage')
+
+			// res.redirect('/signup')
+
+			return res.status(422).render('auth/signup', {
+				path: '/signup',
+				pageTitle: 'Signup',
+				errorMessage : errorMessage,
+
 				oldData :{
 					email : email,
 					password : password,
@@ -148,6 +160,7 @@ exports.postSignup = (req, res, next) =>{
 			return _user.save()
 		})
 		.then(data => {
+			console.log('user has been save successly')
 			res.redirect('/login')
 		})
 		.catch(err => {
