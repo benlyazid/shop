@@ -182,14 +182,16 @@ exports.postLoginWithIntra = (req, res, next) =>{
 exports.auth42 = async (req, res, next) => {
 	var app = new Authenticator(UID, SECRET, REDIRECT_URI);
 	var data = await app.get_Access_token(req.query.code);
-	console.log(data.access_token)
-
 	//? get the acces token of the user
 	console.log("======================== auth user Data =========================");
 	console.log(data);
 	console.log("========================= 42 user data ==========================");
 	//? get the user info from 42 api
 	const accessToken  = data.access_token
+	if (!accessToken){
+		return res.redirect('/login')
+
+	}
 	app.get_user_data(accessToken)
 	.then((data) => {
 		const userEmail = data.email;
