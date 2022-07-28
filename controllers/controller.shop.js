@@ -64,12 +64,15 @@ exports.getCart = (req, res, next) => {
 	.populate('cart.items.productId')
 	.lean()
 	.then(data => {
-		data.cart.items.forEach(element => {
-			let product = element.productId
-			product.quantity = element.quantity
-			productsFetchedFromCart.push(product)
-		});
-		console.log(productsFetchedFromCart)
+		console.log(data)
+		if (data){
+			data.cart.items.forEach(element => {
+				console.log(element)
+				let product = element.productId
+				product.quantity = element.quantity
+				productsFetchedFromCart.push(product)
+			});
+		}
 		res.render('shop/cart', {
 			path: '/cart',
 			pageTitle: 'Your Cart',

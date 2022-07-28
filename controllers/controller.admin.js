@@ -8,22 +8,42 @@ exports.getAddProduct = (req, res, next) => {
 		path: '/admin/add-product',
 		editing: "",
 		isLoggedIn : req.session.isLoggedIn,
+		hasError : false,
+		errorMessage : false,
 	});
 };
 
 exports.postAddProduct = (req, res, next) => {
 	const title = req.body.title;
-	const imageUrl = req.body.imageUrl;
+	const image = req.file
 	const price = req.body.price;
 	const description = req.body.description;
+	if (!image){
+		return res.status(422).render('admin/edit-product',{
+			pageTitle: 'Add Product',
+			path: '/admin/add-product',
+			editing: "",
+			isLoggedIn : req.session.isLoggedIn,
+			hasError : true,
+			errorMessage : "Attached file is not an image",
+			validationErrors : [],
+			product : {
+				title : title,
+				price : price,
+				description : description,
+			}
+		})
+	}
+	const imageUrl = image.path;
 	const product = new Product({title  : title, price : price, description :  description, imageUrl  : imageUrl, userId : req.session.user._id});
+	console.log("CHECK FOR 2 " + imageUrl)
 	product.save()
 		.then((data) => {
 			console.log("DATA HAS BEEN INSERTED....")
 			console.log(data)
 			res.redirect('/products');
 		})
-		.catch(err => console.log(err))
+		.catch(err => console.log("error is " + err))
 };
 
 
@@ -40,6 +60,8 @@ exports.getEditProduct = (req, res, next) => {
 				editing: editMode,
 				product: product,
 				isLoggedIn : req.session.isLoggedIn,
+				hasError : false,
+				errorMessage : false,
 
 			})
 		})
@@ -49,16 +71,19 @@ exports.getEditProduct = (req, res, next) => {
 exports.postEditProduct = (req, res, next) => {
 	const productId = req.body.productId
 	const title = req.body.title;
-	const imageUrl = req.body.imageUrl;
+	const image = req.image
 	const price = req.body.price;
 	const description = req.body.description;
-	Product.findByIdAndUpdate(ObjectId(productId), {
+	let updatedProduct = {
 		title : title,
-		imageUrl : imageUrl,
 		description : description,
 		price : price,
 		userId : req.session.user._id
-	})
+	}
+	if (image)
+		updatedProduct.imageUrl = image.path
+
+	Product.findByIdAndUpdate(ObjectId(productId), updatedProduct)
 	.then(data => {
 		res.redirect('/')
 	})
@@ -69,7 +94,7 @@ exports.postEditProduct = (req, res, next) => {
 }
 
 exports.getProducts = (req, res, next) => {
-	Product.find(  ).then(products => {
+	Product.find().then(products => {
 		console.log(products[0]._id)
 		res.render('admin/products', {
 			isLoggedIn : req.session.isLoggedIn,
